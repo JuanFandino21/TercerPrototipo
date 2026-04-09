@@ -4,9 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-import java.util.Objects;
-
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -15,15 +13,13 @@ public abstract class Suscripcion {
 
     private int id;
     private double precioMensual;
-    private LocalDate fechaInicio;
-    private LocalDate fechaVencimiento;
+    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaVencimiento;
     private boolean activa;
     private String nombreUsuario;
 
-
-
-    public Suscripcion(int id, double precioMensual, LocalDate fechaInicio,
-                       LocalDate fechaVencimiento, boolean activa) {
+    public Suscripcion(int id, double precioMensual, LocalDateTime fechaInicio,
+                       LocalDateTime fechaVencimiento, boolean activa) {
         this.id = id;
         this.precioMensual = precioMensual;
         this.fechaInicio = fechaInicio;
@@ -31,7 +27,7 @@ public abstract class Suscripcion {
         this.activa = activa;
     }
 
-    public Suscripcion(int id, double precioMensual, LocalDate fechaInicio, String nombreUsuario) {
+    public Suscripcion(int id, double precioMensual, LocalDateTime fechaInicio, String nombreUsuario) {
         this.id = id;
         this.precioMensual = precioMensual;
         this.fechaInicio = fechaInicio;
@@ -46,11 +42,11 @@ public abstract class Suscripcion {
         }
     }
 
-    public void validarFechaInicio(LocalDate fechaInicio) throws Exception {
-        if (fechaInicio.isBefore(LocalDate.now())) {
+    public void validarFechaInicio(LocalDateTime fechaInicio) throws Exception {
+        if (fechaInicio.isBefore(LocalDateTime.now())) {
             throw new Exception("La fecha no puede ser anterior a hoy ");
         }
-        if (fechaInicio.isAfter(LocalDate.now().plusMonths(1))) {
+        if (fechaInicio.isAfter(LocalDateTime.now().plusMonths(1))) {
             throw new Exception("La fecha no puede ser mayor a un mes desde hoy ");
         }
     }

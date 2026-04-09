@@ -33,8 +33,12 @@
             this.lbDispositivos = new System.Windows.Forms.Label();
             this.txtID = new System.Windows.Forms.TextBox();
             this.txtNombreUsuario = new System.Windows.Forms.TextBox();
-            this.txtDispositivosSimultaneos = new System.Windows.Forms.TextBox();
+            this.txtDispositivos = new System.Windows.Forms.TextBox();
             this.btnAdd = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.chkActiva = new System.Windows.Forms.CheckBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.dtpFechaInicio = new System.Windows.Forms.DateTimePicker();
             this.SuspendLayout();
             // 
             // label1
@@ -60,7 +64,7 @@
             // lbDispositivos
             // 
             this.lbDispositivos.AutoSize = true;
-            this.lbDispositivos.Location = new System.Drawing.Point(77, 116);
+            this.lbDispositivos.Location = new System.Drawing.Point(77, 162);
             this.lbDispositivos.Name = "lbDispositivos";
             this.lbDispositivos.Size = new System.Drawing.Size(121, 13);
             this.lbDispositivos.TabIndex = 2;
@@ -70,7 +74,7 @@
             // 
             this.txtID.Location = new System.Drawing.Point(200, 48);
             this.txtID.Name = "txtID";
-            this.txtID.Size = new System.Drawing.Size(248, 20);
+            this.txtID.Size = new System.Drawing.Size(51, 20);
             this.txtID.TabIndex = 3;
             // 
             // txtNombreUsuario
@@ -80,12 +84,12 @@
             this.txtNombreUsuario.Size = new System.Drawing.Size(248, 20);
             this.txtNombreUsuario.TabIndex = 4;
             // 
-            // txtDispositivosSimultaneos
+            // txtDispositivos
             // 
-            this.txtDispositivosSimultaneos.Location = new System.Drawing.Point(200, 113);
-            this.txtDispositivosSimultaneos.Name = "txtDispositivosSimultaneos";
-            this.txtDispositivosSimultaneos.Size = new System.Drawing.Size(248, 20);
-            this.txtDispositivosSimultaneos.TabIndex = 5;
+            this.txtDispositivos.Location = new System.Drawing.Point(200, 159);
+            this.txtDispositivos.Name = "txtDispositivos";
+            this.txtDispositivos.Size = new System.Drawing.Size(51, 20);
+            this.txtDispositivos.TabIndex = 5;
             // 
             // btnAdd
             // 
@@ -97,13 +101,55 @@
             this.btnAdd.UseVisualStyleBackColor = true;
             this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(77, 123);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(37, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "Activa";
+            this.label2.Click += new System.EventHandler(this.label2_Click_1);
+            // 
+            // chkActiva
+            // 
+            this.chkActiva.AutoSize = true;
+            this.chkActiva.Location = new System.Drawing.Point(204, 123);
+            this.chkActiva.Name = "chkActiva";
+            this.chkActiva.Size = new System.Drawing.Size(15, 14);
+            this.chkActiva.TabIndex = 8;
+            this.chkActiva.UseVisualStyleBackColor = true;
+            this.chkActiva.CheckedChanged += new System.EventHandler(this.chkActiva_CheckedChanged);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(77, 202);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(64, 13);
+            this.label3.TabIndex = 9;
+            this.label3.Text = "Fecha inicio";
+            // 
+            // dtpFechaInicio
+            // 
+            this.dtpFechaInicio.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            this.dtpFechaInicio.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpFechaInicio.Location = new System.Drawing.Point(200, 202);
+            this.dtpFechaInicio.Name = "dtpFechaInicio";
+            this.dtpFechaInicio.Size = new System.Drawing.Size(200, 20);
+            this.dtpFechaInicio.TabIndex = 10;
+            // 
             // GUIAddSuscripcion
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(515, 289);
+            this.Controls.Add(this.dtpFechaInicio);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.chkActiva);
+            this.Controls.Add(this.label2);
             this.Controls.Add(this.btnAdd);
-            this.Controls.Add(this.txtDispositivosSimultaneos);
+            this.Controls.Add(this.txtDispositivos);
             this.Controls.Add(this.txtNombreUsuario);
             this.Controls.Add(this.txtID);
             this.Controls.Add(this.lbDispositivos);
@@ -123,7 +169,11 @@
         private System.Windows.Forms.Label lbDispositivos;
         private System.Windows.Forms.TextBox txtID;
         private System.Windows.Forms.TextBox txtNombreUsuario;
-        private System.Windows.Forms.TextBox txtDispositivosSimultaneos;
+        private System.Windows.Forms.TextBox txtDispositivos;
         private System.Windows.Forms.Button btnAdd;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox chkActiva;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.DateTimePicker dtpFechaInicio;
     }
 }

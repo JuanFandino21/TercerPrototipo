@@ -6,8 +6,10 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text.Json;
 
 namespace POCSuscripcionCliente
 {
@@ -33,18 +35,42 @@ namespace POCSuscripcionCliente
             var options = new RestClientOptions("http://localhost:31230/streaming");
             var client = new RestClient(options);
 
-            var request = new RestRequest("");
+            var request = new RestRequest("/", Method.Post);
 
-            request.AddBody(new
+            string fecha = dtpFechaInicio.Value.ToString("yyyy-MM-ddTHH:mm:ss");
+
+            request.AddJsonBody(new
             {
                 id = int.Parse(txtID.Text),
                 nombreUsuario = txtNombreUsuario.Text,
-                dispositivosSimultaneos = int.Parse(txtDispositivosSimultaneos.Text)
+                activa = chkActiva.Checked,
+                dispositivosSimultaneos = int.Parse(txtDispositivos.Text),
+                fechaInicio = fecha
             });
 
-            var response = client.Post(request);
+            var response = client.Execute(request);
 
-            MessageBox.Show(response.Content);
+            
+
+            var json = JsonSerializer.Deserialize<object>(response.Content);
+            string bonito = JsonSerializer.Serialize(json, new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+            MessageBox.Show(bonito);
+
+            Dispose();
+
+        }
+
+        private void label2_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chkActiva_CheckedChanged(object sender, EventArgs e)
+        {
 
         }
     }

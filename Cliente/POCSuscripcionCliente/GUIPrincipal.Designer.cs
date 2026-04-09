@@ -69,6 +69,7 @@
             this.suscripcionStreamingToolStripMenuItem.Name = "suscripcionStreamingToolStripMenuItem";
             this.suscripcionStreamingToolStripMenuItem.Size = new System.Drawing.Size(134, 20);
             this.suscripcionStreamingToolStripMenuItem.Text = "SuscripcionStreaming";
+            this.suscripcionStreamingToolStripMenuItem.Click += new System.EventHandler(this.suscripcionStreamingToolStripMenuItem_Click);
             // 
             // addSuscripToolStripMenuItem
             // 
@@ -110,6 +111,7 @@
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(80, 20);
             this.toolStripMenuItem1.Text = "Acerca de...";
+            this.toolStripMenuItem1.Click += new System.EventHandler(this.toolStripMenuItem1_Click);
             // 
             // GUIPrincipal
             // 

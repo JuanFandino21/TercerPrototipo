@@ -56,5 +56,31 @@ namespace POCSuscripcionCliente
             gui.Show();
 
         }
+
+        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
+            MessageBox.Show(
+                "Sistema de Suscripciones\n\n" +
+                "Versión: 1.0\n\n" +
+                "Integrantes:\n\n" +
+                "Juan David Fandiño Hernandez\n" +
+                "Código: 2220221087\n\n" +
+                "Ronald Andres Barrios Hernandez\n" +
+                "Código: 2220221029\n\n" +
+                "Universidad de Ibagué\n" +
+                "Desarrollo de Aplicaciones Empresariales",
+                "Acerca de...",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
+
+        }
+
+        private void suscripcionStreamingToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

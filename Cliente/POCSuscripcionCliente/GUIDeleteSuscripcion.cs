@@ -18,8 +18,23 @@ namespace POCSuscripcionCliente
             InitializeComponent();
         }
 
+        private void limpiarCampos()
+        {
+            ID.Text = "";
+            Nombre.Text = "";
+            chkActiva.Checked = false;
+            Dispositivos.Text = "";
+            fechai.Text = "";
+        }
+
         private void btnSearch_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtID.Text)) 
+            {
+                MessageBox.Show("Debe ingresar un ID");
+                return;
+            }
+
             string id = txtID.Text;
 
             var options = new RestClientOptions("http://localhost:31230/streaming");
@@ -29,29 +44,51 @@ namespace POCSuscripcionCliente
 
             var response = client.Execute(request);
 
-            txtRespuesta.Text = response.Content;
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                MessageBox.Show("No existe suscripción con id: " + id);
+                limpiarCampos();
+                return;
+            }
+
+            string contenido = response.Content;
+
+            contenido = contenido.Replace("{", "").Replace("}", "");
+
+            string[] campos = contenido.Split(',');
+
+            foreach (var campo in campos)
+            {
+                if (campo.Contains("id"))
+                    ID.Text = campo.Split(':')[1]; 
+
+                if (campo.Contains("nombreUsuario"))
+                    Nombre.Text = campo.Split(':')[1].Replace("\"", "");
+
+                if (campo.Contains("activa"))
+                    chkActiva.Checked = campo.Split(':')[1].Trim() == "true";
+
+                if (campo.Contains("dispositivosSimultaneos"))
+                    Dispositivos.Text = campo.Split(':')[1];
+
+                if (campo.Contains("fechaInicio"))
+                {
+                    string fecha = campo.Split(':')[1].Replace("\"", "");
+                    fecha = fecha.Replace("T", " ");
+                    fechai.Text = fecha;
+                }
+            }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (txtRespuesta.Text.Contains("No existe"))
+            if (string.IsNullOrWhiteSpace(ID.Text))
             {
-                MessageBox.Show("No se puede eliminar, no existe el registro");
+                MessageBox.Show("Primero debe buscar una suscripción");
                 return;
             }
 
-            DialogResult result = MessageBox.Show(
-                "¿Seguro que deseas eliminar?",
-                "Confirmación",
-                MessageBoxButtons.YesNo
-            );
-
-            if (result == DialogResult.No)
-            {
-                return;
-            }
-
-            string id = txtID.Text;
+            string id = ID.Text;
 
             var options = new RestClientOptions("http://localhost:31230/streaming");
             var client = new RestClient(options);
@@ -60,7 +97,10 @@ namespace POCSuscripcionCliente
 
             var response = client.Execute(request);
 
-            txtRespuesta.Text = response.Content;
+            MessageBox.Show(response.Content);
+
+            limpiarCampos();
+
 
         }
     }

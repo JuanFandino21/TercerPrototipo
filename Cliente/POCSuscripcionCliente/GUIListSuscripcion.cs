@@ -39,10 +39,8 @@ namespace POCSuscripcionCliente
             var request = new RestRequest(url, Method.Get);
             var response = client.Execute(request);
 
-          
             dataGridView1.Rows.Clear();
 
-         
             string contenido = response.Content;
 
             contenido = contenido.Replace("[", "").Replace("]", "").Replace("{", "").Replace("}", "");
@@ -57,11 +55,18 @@ namespace POCSuscripcionCliente
                 string nombreUsuario = "";
                 string activaVal = "";
                 string dispositivos = "";
+                string fecha = ""; 
 
                 foreach (var campo in campos)
                 {
                     if (campo.Contains("id"))
                         id = campo.Split(':')[1];
+
+                    if (campo.Contains("fechaInicio"))
+                    {
+                        fecha = campo.Split(':')[1].Replace("\"", "");
+                        fecha = fecha.Replace("T", " ");
+                    }
 
                     if (campo.Contains("nombreUsuario"))
                         nombreUsuario = campo.Split(':')[1].Replace("\"", "");
@@ -73,7 +78,8 @@ namespace POCSuscripcionCliente
                         dispositivos = campo.Split(':')[1];
                 }
 
-                dataGridView1.Rows.Add(id, nombreUsuario, activaVal, dispositivos);
+               
+                dataGridView1.Rows.Add(id, nombreUsuario, activaVal, dispositivos, fecha);
             }
         }
 

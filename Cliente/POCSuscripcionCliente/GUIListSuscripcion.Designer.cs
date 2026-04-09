@@ -40,6 +40,7 @@
             this.Nombre = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Activa = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Dispositivos = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.FechaInicio = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -67,12 +68,13 @@
             this.ID,
             this.Nombre,
             this.Activa,
-            this.Dispositivos});
-            this.dataGridView1.Location = new System.Drawing.Point(68, 72);
+            this.Dispositivos,
+            this.FechaInicio});
+            this.dataGridView1.Location = new System.Drawing.Point(12, 72);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(445, 246);
+            this.dataGridView1.Size = new System.Drawing.Size(572, 246);
             this.dataGridView1.TabIndex = 3;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
@@ -137,6 +139,12 @@
             this.Dispositivos.Name = "Dispositivos";
             this.Dispositivos.ReadOnly = true;
             // 
+            // FechaInicio
+            // 
+            this.FechaInicio.HeaderText = "FechaInicio";
+            this.FechaInicio.Name = "FechaInicio";
+            this.FechaInicio.ReadOnly = true;
+            // 
             // GUIListSuscripcion
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -168,5 +176,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Nombre;
         private System.Windows.Forms.DataGridViewTextBoxColumn Activa;
         private System.Windows.Forms.DataGridViewTextBoxColumn Dispositivos;
+        private System.Windows.Forms.DataGridViewTextBoxColumn FechaInicio;
     }
 }

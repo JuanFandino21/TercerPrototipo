@@ -14,24 +14,24 @@ public class SuscripcionStreamingController {
 
     private final SuscripcionService service = SuscripcionService.getInstance();
 
-    // 🔹 HEALTH
     @GetMapping("/health")
     public String healthCheck() {
         return "Servicio Suscripciones OK";
     }
 
-    // 🔹 CREATE
+
     @PostMapping
     public ResponseEntity<?> add(@RequestBody SuscripcionStreaming sus) {
+
         if (sus == null) {
             return ResponseEntity.badRequest().body("La suscripción no puede ser null");
         }
 
         service.addSuscripcion(sus);
-        return ResponseEntity.ok(sus);
+
+        return ResponseEntity.status(201).body(sus);
     }
 
-    // 🔹 SEARCH (OBLIGATORIO PARA DELETE/UPDATE)
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable int id) {
         Suscripcion s = service.buscarSuscripcionPorId(id);
@@ -43,7 +43,6 @@ public class SuscripcionStreamingController {
         return ResponseEntity.ok(s);
     }
 
-    // 🔹 DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable int id) {
 
@@ -57,7 +56,6 @@ public class SuscripcionStreamingController {
         return ResponseEntity.ok("Eliminado correctamente");
     }
 
-    // 🔹 UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable int id, @RequestBody SuscripcionStreaming sus) {
 
