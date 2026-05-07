@@ -1,31 +1,23 @@
 package com.jfrb.POCSucripcion.controller;
 
-import com.jfrb.POCSucripcion.model.Suscripcion;
 import com.jfrb.POCSucripcion.model.SuscripcionStreaming;
-import com.jfrb.POCSucripcion.service.ISuscripcionService;
 import com.jfrb.POCSucripcion.service.ISuscripcionStreamingService;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/streaming")
 @CrossOrigin(origins = "*")
 public class SuscripcionStreamingController {
 
-    private final ISuscripcionService service;
     private final ISuscripcionStreamingService streamingService;
 
-    public SuscripcionStreamingController(
-            ISuscripcionService service,
-            ISuscripcionStreamingService streamingService) {
-
-        this.service = service;
+    public SuscripcionStreamingController(ISuscripcionStreamingService streamingService) {
         this.streamingService = streamingService;
     }
 
@@ -34,7 +26,9 @@ public class SuscripcionStreamingController {
         return "Servicio Suscripciones OK";
     }
 
-    
+    // ---------------------------------------------------------------------
+    // Validación de fecha (igual a la tuya)
+    // ---------------------------------------------------------------------
     private void validarFecha(LocalDateTime fecha) {
 
         if (fecha == null) {
@@ -44,11 +38,9 @@ public class SuscripcionStreamingController {
         LocalDate hoy = LocalDate.now();
         LocalDate fechaUsuario = fecha.toLocalDate();
 
-
         if (fechaUsuario.isBefore(hoy)) {
             throw new RuntimeException("La fecha no puede ser anterior a hoy");
         }
-
 
         LocalDate limite = hoy.plusMonths(1);
 
@@ -57,6 +49,9 @@ public class SuscripcionStreamingController {
         }
     }
 
+    // ---------------------------------------------------------------------
+    // POST /streaming  → crear suscripción
+    // ---------------------------------------------------------------------
     @PostMapping
     public ResponseEntity<?> add(@RequestBody SuscripcionStreaming sus) {
         try {
@@ -69,7 +64,7 @@ public class SuscripcionStreamingController {
                 return ResponseEntity.badRequest().body("El ID debe ser mayor a 0");
             }
 
-            Suscripcion existente = service.buscarSuscripcionPorId(sus.getId());
+            SuscripcionStreaming existente = streamingService.buscarSuscripcionPorId(sus.getId());
             if (existente != null) {
                 return ResponseEntity.badRequest().body("Ya existe una suscripción con ese ID");
             }
@@ -89,7 +84,7 @@ public class SuscripcionStreamingController {
             validarFecha(sus.getFechaInicio());
             streamingService.validarDispositivos(sus.getDispositivosSimultaneos());
 
-            service.addSuscripcion(sus);
+            streamingService.addSuscripcion(sus);
 
             return ResponseEntity.status(201).body(sus);
 
@@ -98,39 +93,51 @@ public class SuscripcionStreamingController {
         }
     }
 
+    // ---------------------------------------------------------------------
+    // GET /streaming/{id}  → buscar por id
+    // ---------------------------------------------------------------------
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable int id) {
 
-        Suscripcion s = service.buscarSuscripcionPorId(id);
+        SuscripcionStreaming sus = streamingService.buscarSuscripcionPorId(id);
 
-        if (s == null) {
+        if (sus == null) {
             return ResponseEntity.status(404).body("No existe suscripción con id: " + id);
         }
 
-        return ResponseEntity.ok(s);
+        return ResponseEntity.ok(sus);
     }
 
+    // ---------------------------------------------------------------------
+    // DELETE /streaming/{id}  → eliminar
+    // ---------------------------------------------------------------------
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable int id) {
 
-        Suscripcion s = service.buscarSuscripcionPorId(id);
+        SuscripcionStreaming sus = streamingService.buscarSuscripcionPorId(id);
 
-        if (s == null) {
+        if (sus == null) {
             return ResponseEntity.status(404).body("No existe el registro");
         }
 
-        service.eliminarSuscripcionPorId(id);
+        boolean eliminado = streamingService.eliminarSuscripcionPorId(id);
+
+        if (!eliminado) {
+            return ResponseEntity.badRequest().body("No se pudo eliminar");
+        }
 
         return ResponseEntity.ok(Map.of("mensaje", "Eliminado correctamente"));
     }
 
-
+    // ---------------------------------------------------------------------
+    // PUT /streaming/{id}  → actualizar
+    // ---------------------------------------------------------------------
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable int id, @RequestBody SuscripcionStreaming sus) {
 
         try {
 
-            Suscripcion existente = service.buscarSuscripcionPorId(id);
+            SuscripcionStreaming existente = streamingService.buscarSuscripcionPorId(id);
 
             if (existente == null) {
                 return ResponseEntity.status(404).body("No existe el registro");
@@ -148,12 +155,11 @@ public class SuscripcionStreamingController {
                 return ResponseEntity.badRequest().body("Debe ingresar dispositivos");
             }
 
-
             validarFecha(sus.getFechaInicio());
             streamingService.validarDispositivos(sus.getDispositivosSimultaneos());
 
             sus.setId(id);
-            boolean actualizado = service.actualizarSuscripcion(sus);
+            boolean actualizado = streamingService.actualizarSuscripcion(sus);
 
             if (!actualizado) {
                 return ResponseEntity.badRequest().body("No se pudo actualizar");
@@ -166,16 +172,18 @@ public class SuscripcionStreamingController {
         }
     }
 
-
+    // ---------------------------------------------------------------------
+    // GET /streaming  → listar (con filtros opcionales nombre / activa)
+    // ---------------------------------------------------------------------
     @GetMapping
     public ResponseEntity<?> listar(
             @RequestParam(required = false) String nombre,
             @RequestParam(required = false) Boolean activa
     ) {
 
-        List<Suscripcion> lista = service.getSuscripciones();
+        List<SuscripcionStreaming> lista = streamingService.getSuscripciones();
 
-        List<Suscripcion> resultado = lista.stream()
+        List<SuscripcionStreaming> resultado = lista.stream()
                 .filter(s -> nombre == null || s.getNombreUsuario().equalsIgnoreCase(nombre))
                 .filter(s -> activa == null || s.isActiva() == activa)
                 .toList();
