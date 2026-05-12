@@ -2,8 +2,7 @@
 
 ## Integrantes
 - Juan David Fandiño Hernández
-- [Nombre integrante 2]
-- [Nombre integrante 3]
+- Ronald Andres Barrios Hernández
 
 ## Descripción
 Aplicación distribuida para gestionar usuarios y suscripciones de streaming mediante servicios web REST.
