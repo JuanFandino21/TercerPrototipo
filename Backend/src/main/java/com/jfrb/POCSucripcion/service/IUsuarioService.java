@@ -16,7 +16,6 @@ public interface IUsuarioService {
 
     Usuario actualizarUsuario(int codigo, Usuario usuario);
 
-    // métodos que está usando el controller
     List<Usuario> buscarPorNombre(String nombre);
 
     Usuario buscarPorEmail(String email);

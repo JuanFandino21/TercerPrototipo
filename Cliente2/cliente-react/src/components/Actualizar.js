@@ -1,118 +1,446 @@
 import React, { useState } from "react";
-import { buscar, actualizar } from "../services/api";
+import { buscar, actualizar, getUsuarioByCodigo } from "../services/api";
 
-const Actualizar = () => {
+const PLATAFORMAS = [
+  "Netflix",
+  "Disney+",
+  "HBO Max",
+  "Amazon Prime Video",
+  "Paramount+",
+  "Apple TV+",
+  "Crunchyroll",
+  "Star+",
+];
 
+const PRECIOS = {
+  1: 16000,
+  2: 18000,
+  3: 20000,
+  4: 22000,
+  5: 24000,
+  6: 26000,
+};
+
+function hoyLocalDateTime() {
+  const ahora = new Date();
+  ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+  return ahora.toISOString().slice(0, 16);
+}
+
+function toInputDateTime(fecha) {
+  if (!fecha) return "";
+  return String(fecha).slice(0, 16);
+}
+
+function validar(form) {
+  const errores = {};
+
+  if (!form.codigoUsuario || Number(form.codigoUsuario) <= 0) {
+    errores.codigoUsuario = "Debes ingresar el código de un usuario existente";
+  }
+
+  if (!form.plataforma) {
+    errores.plataforma = "Selecciona una plataforma";
+  }
+
+  if (!form.dispositivosSimultaneos || Number(form.dispositivosSimultaneos) < 1 || Number(form.dispositivosSimultaneos) > 6) {
+    errores.dispositivosSimultaneos = "Selecciona entre 1 y 6 dispositivos";
+  }
+
+  if (!form.fechaInicio) {
+    errores.fechaInicio = "Debes ingresar la fecha de inicio";
+  } else if (form.fechaInicio < hoyLocalDateTime()) {
+    errores.fechaInicio = "La fecha no puede ser anterior a hoy";
+  }
+
+  return errores;
+}
+
+function Actualizar() {
   const [id, setId] = useState("");
   const [form, setForm] = useState(null);
-
+  const [usuarioEncontrado, setUsuarioEncontrado] = useState(null);
+  const [errores, setErrores] = useState({});
+  const [alerta, setAlerta] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [verificandoUsuario, setVerificandoUsuario] = useState(false);
 
   const handleBuscar = async () => {
-    try {
-      const data = await buscar(id);
+    setAlerta(null);
+    setErrores({});
+    setForm(null);
+    setUsuarioEncontrado(null);
 
-      data.fechaInicio = data.fechaInicio.slice(0, 16);
-
-      setForm(data);
-
-    } catch {
-      alert("No encontrado");
-    }
-  };
-
-  
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    });
-  };
-
- 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-
-    if (!form.fechaInicio) {
-      alert("Debe ingresar fecha");
+    if (!id || Number(id) <= 0) {
+      setAlerta({
+        tipo: "warning",
+        mensaje: "Ingresa un ID válido mayor a 0.",
+      });
       return;
     }
 
-    const data = {
-      ...form,
-      dispositivosSimultaneos: parseInt(form.dispositivosSimultaneos),
+    setCargando(true);
 
-      // 🔥 FORMATO QUE SPRING ENTIENDE
-      fechaInicio: form.fechaInicio + ":00"
-    };
+    const res = await buscar(id);
 
-    try {
-      const res = await actualizar(form.id, data);
+    if (res.ok && res.data?.id) {
+      const dispositivos = Number(res.data.dispositivosSimultaneos || "");
+      const codigoUsuario = res.data.usuario?.codigo || "";
 
-      if (typeof res === "string") {
-        alert(res);
-      } else {
-        alert("Actualizado correctamente");
+      setForm({
+        id: res.data.id,
+        codigoUsuario,
+        plataforma: res.data.plataforma || "",
+        dispositivosSimultaneos: dispositivos ? String(dispositivos) : "",
+        costoMensual: PRECIOS[dispositivos] || res.data.costoMensual || "",
+        fechaInicio: toInputDateTime(res.data.fechaInicio),
+        activa: Boolean(res.data.activa),
+      });
+
+      if (res.data.usuario) {
+        setUsuarioEncontrado(res.data.usuario);
       }
 
-    } catch {
-      alert("Error al actualizar");
+      setAlerta({
+        tipo: "success",
+        mensaje: "Suscripción encontrada. Ahora puedes actualizar sus datos.",
+      });
+    } else {
+      setAlerta({
+        tipo: "error",
+        mensaje: res.mensaje || "No se encontró la suscripción.",
+      });
+    }
+
+    setCargando(false);
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (name === "dispositivosSimultaneos") {
+      const cantidad = Number(value);
+
+      setForm((prev) => ({
+        ...prev,
+        dispositivosSimultaneos: value,
+        costoMensual: PRECIOS[cantidad] || "",
+      }));
+    } else if (name === "codigoUsuario") {
+      setUsuarioEncontrado(null);
+
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
+
+    if (errores[name]) {
+      setErrores((prev) => ({
+        ...prev,
+        [name]: null,
+      }));
     }
   };
 
+  const verificarUsuario = async () => {
+    setAlerta(null);
+    setUsuarioEncontrado(null);
+
+    if (!form.codigoUsuario || Number(form.codigoUsuario) <= 0) {
+      setErrores((prev) => ({
+        ...prev,
+        codigoUsuario: "Ingresa un código válido mayor a 0",
+      }));
+      return false;
+    }
+
+    setVerificandoUsuario(true);
+
+    const res = await getUsuarioByCodigo(form.codigoUsuario);
+
+    if (res.ok && res.data?.codigo) {
+      setUsuarioEncontrado(res.data);
+      setVerificandoUsuario(false);
+      return true;
+    }
+
+    setAlerta({
+      tipo: "error",
+      mensaje: res.mensaje || "No existe un usuario con ese código.",
+    });
+
+    setVerificandoUsuario(false);
+    return false;
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setAlerta(null);
+
+    const erroresValidacion = validar(form);
+
+    if (Object.keys(erroresValidacion).length > 0) {
+      setErrores(erroresValidacion);
+      setAlerta({
+        tipo: "warning",
+        mensaje: "Corrige los errores antes de actualizar la suscripción.",
+      });
+      return;
+    }
+
+    const existeUsuario = usuarioEncontrado || await verificarUsuario();
+
+    if (!existeUsuario) {
+      return;
+    }
+
+    setCargando(true);
+
+    const payload = {
+      id: parseInt(form.id),
+      plataforma: form.plataforma,
+      dispositivosSimultaneos: parseInt(form.dispositivosSimultaneos),
+      costoMensual: Number(form.costoMensual),
+      fechaInicio: `${form.fechaInicio}:00`,
+      activa: form.activa,
+      usuario: {
+        codigo: parseInt(form.codigoUsuario),
+      },
+    };
+
+    const res = await actualizar(form.id, payload);
+
+    if (res.ok) {
+      setAlerta({
+        tipo: "success",
+        mensaje: "Suscripción actualizada correctamente.",
+      });
+    } else {
+      setAlerta({
+        tipo: "error",
+        mensaje: res.mensaje || "No se pudo actualizar la suscripción.",
+      });
+    }
+
+    setCargando(false);
+  };
+
   return (
-    <div className="card">
-      <h3>Actualizar Suscripción</h3>
+    <div style={{ maxWidth: "680px", margin: "0 auto" }}>
+      <h2 className="page-title">✏️ Actualizar Suscripción</h2>
 
-      <input
-        placeholder="ID"
-        onChange={(e) => setId(e.target.value)}
-      />
+      <p className="page-subtitle">
+        Primero busca la suscripción por ID. Luego modifica los datos necesarios.
+      </p>
 
-      <button onClick={handleBuscar}>Buscar</button>
+      {alerta && (
+        <div className={`alert alert-${alerta.tipo}`}>
+          {alerta.mensaje}
+        </div>
+      )}
+
+      <div className="card">
+        <div className="form-group">
+          <label>ID de la suscripción</label>
+          <span className="form-help">
+            Ingresa el ID de la suscripción que deseas actualizar.
+          </span>
+
+          <div className="search-two">
+            <input
+              className="input"
+              type="number"
+              placeholder="Ej: 1"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+            />
+
+            <button
+              className="btn btn-search"
+              type="button"
+              onClick={handleBuscar}
+              disabled={cargando}
+            >
+              {cargando ? "Buscando..." : "Buscar"}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {form && (
-        <form onSubmit={handleUpdate}>
+        <form className="card" onSubmit={handleUpdate} noValidate>
+          <div className="alert alert-warning">
+            Revisa toda la información antes de actualizar. El ID no se modifica.
+          </div>
 
-          <label>Usuario</label>
-          <input
-            name="nombreUsuario"
-            value={form.nombreUsuario}
-            onChange={handleChange}
-          />
+          <div className="form-group">
+            <label>ID Suscripción</label>
+            <span className="form-help">Llave primaria de la suscripción.</span>
+            <input className="input" value={form.id} disabled />
+          </div>
 
-          <label>Dispositivos</label>
-          <input
-            type="number"
-            name="dispositivosSimultaneos"
-            value={form.dispositivosSimultaneos}
-            onChange={handleChange}
-          />
+          <div className="form-group">
+            <label>
+              Código del Usuario <span style={{ color: "#e94560" }}>*</span>
+            </label>
+            <span className="form-help">
+              La suscripción debe seguir vinculada a un usuario existente.
+            </span>
 
-          <label>Fecha inicio</label>
-          <input
-            type="datetime-local"
-            name="fechaInicio"
-            value={form.fechaInicio}
-            onChange={handleChange}
-          />
+            <div className="search-two">
+              <input
+                className={`input ${errores.codigoUsuario ? "input-error" : ""}`}
+                type="number"
+                name="codigoUsuario"
+                value={form.codigoUsuario}
+                onChange={handleChange}
+              />
 
-          <label>
-            Activa
+              <button
+                className="btn btn-search"
+                type="button"
+                onClick={verificarUsuario}
+                disabled={verificandoUsuario}
+              >
+                {verificandoUsuario ? "Verificando..." : "Verificar"}
+              </button>
+            </div>
+
+            {errores.codigoUsuario && (
+              <span className="error-field">⚠ {errores.codigoUsuario}</span>
+            )}
+
+            {usuarioEncontrado && (
+              <div className="alert alert-success" style={{ marginTop: "12px" }}>
+                Usuario vinculado: <strong>{usuarioEncontrado.nombre}</strong> — Código:{" "}
+                <strong>{usuarioEncontrado.codigo}</strong>
+              </div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>
+              Plataforma <span style={{ color: "#e94560" }}>*</span>
+            </label>
+            <span className="form-help">
+              Selecciona una plataforma de la lista.
+            </span>
+            <select
+              className={`select ${errores.plataforma ? "input-error" : ""}`}
+              name="plataforma"
+              value={form.plataforma}
+              onChange={handleChange}
+            >
+              <option value="">-- Selecciona una plataforma --</option>
+              {PLATAFORMAS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+            {errores.plataforma && (
+              <span className="error-field">⚠ {errores.plataforma}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>
+              Dispositivos Simultáneos <span style={{ color: "#e94560" }}>*</span>
+            </label>
+            <span className="form-help">
+              El costo mensual se calcula automáticamente según la cantidad.
+            </span>
+            <select
+              className={`select ${errores.dispositivosSimultaneos ? "input-error" : ""}`}
+              name="dispositivosSimultaneos"
+              value={form.dispositivosSimultaneos}
+              onChange={handleChange}
+            >
+              <option value="">-- Selecciona --</option>
+              <option value="1">1 dispositivo — $16.000 COP</option>
+              <option value="2">2 dispositivos — $18.000 COP</option>
+              <option value="3">3 dispositivos — $20.000 COP</option>
+              <option value="4">4 dispositivos — $22.000 COP</option>
+              <option value="5">5 dispositivos — $24.000 COP</option>
+              <option value="6">6 dispositivos — $26.000 COP</option>
+            </select>
+            {errores.dispositivosSimultaneos && (
+              <span className="error-field">⚠ {errores.dispositivosSimultaneos}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>Costo Mensual</label>
+            <span className="form-help">
+              Se calcula automáticamente. No se escribe manualmente.
+            </span>
             <input
-              type="checkbox"
-              name="activa"
-              checked={form.activa}
+              className="input"
+              type="text"
+              value={
+                form.costoMensual
+                  ? `$${Number(form.costoMensual).toLocaleString("es-CO")} COP`
+                  : "Selecciona los dispositivos"
+              }
+              disabled
+            />
+          </div>
+
+          <div className="form-group">
+            <label>
+              Fecha Inicio <span style={{ color: "#e94560" }}>*</span>
+            </label>
+            <span className="form-help">
+              La fecha no puede ser anterior a hoy.
+            </span>
+            <input
+              className={`input ${errores.fechaInicio ? "input-error" : ""}`}
+              type="datetime-local"
+              name="fechaInicio"
+              value={form.fechaInicio}
+              min={hoyLocalDateTime()}
               onChange={handleChange}
             />
-          </label>
+            {errores.fechaInicio && (
+              <span className="error-field">⚠ {errores.fechaInicio}</span>
+            )}
+          </div>
 
-          <button className="primary">Actualizar</button>
+          <div className="form-group">
+            <label>Estado de la suscripción</label>
+            <span className="form-help">
+              Marca si la suscripción está activa.
+            </span>
+
+            <label style={{ display: "flex", gap: "8px", alignItems: "center", fontWeight: 700 }}>
+              <input
+                type="checkbox"
+                name="activa"
+                checked={form.activa}
+                onChange={handleChange}
+              />
+              Activa
+            </label>
+          </div>
+
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={cargando}
+            style={{ width: "100%" }}
+          >
+            {cargando ? "⏳ Actualizando..." : "💾 Actualizar Suscripción"}
+          </button>
         </form>
       )}
     </div>
   );
-};
+}
 
 export default Actualizar;

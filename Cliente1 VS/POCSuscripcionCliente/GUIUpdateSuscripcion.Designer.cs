@@ -32,14 +32,14 @@
             this.txtID = new System.Windows.Forms.TextBox();
             this.btnBuscar = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.txtNombre = new System.Windows.Forms.TextBox();
-            this.chkActiva = new System.Windows.Forms.CheckBox();
-            this.txtDispositivos = new System.Windows.Forms.TextBox();
             this.dtpFecha = new System.Windows.Forms.DateTimePicker();
+            this.txtDispositivos = new System.Windows.Forms.TextBox();
+            this.chkActiva = new System.Windows.Forms.CheckBox();
+            this.txtCodigoUsuario = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.btnUpdate = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -59,6 +59,7 @@
             this.txtID.Name = "txtID";
             this.txtID.Size = new System.Drawing.Size(100, 20);
             this.txtID.TabIndex = 1;
+            this.txtID.TextChanged += new System.EventHandler(this.txtID_TextChanged);
             // 
             // btnBuscar
             // 
@@ -75,7 +76,7 @@
             this.groupBox1.Controls.Add(this.dtpFecha);
             this.groupBox1.Controls.Add(this.txtDispositivos);
             this.groupBox1.Controls.Add(this.chkActiva);
-            this.groupBox1.Controls.Add(this.txtNombre);
+            this.groupBox1.Controls.Add(this.txtCodigoUsuario);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
@@ -87,48 +88,21 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Suscripción";
             // 
-            // label1
+            // dtpFecha
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(67, 37);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(47, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Nombre:";
+            this.dtpFecha.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            this.dtpFecha.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpFecha.Location = new System.Drawing.Point(169, 175);
+            this.dtpFecha.Name = "dtpFecha";
+            this.dtpFecha.Size = new System.Drawing.Size(200, 20);
+            this.dtpFecha.TabIndex = 7;
             // 
-            // label2
+            // txtDispositivos
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(67, 83);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(40, 13);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "Activa:";
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(67, 131);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(66, 13);
-            this.label3.TabIndex = 2;
-            this.label3.Text = "Dispositivos:";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(67, 175);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(67, 13);
-            this.label4.TabIndex = 3;
-            this.label4.Text = "Fecha inicio:";
-            // 
-            // txtNombre
-            // 
-            this.txtNombre.Location = new System.Drawing.Point(169, 37);
-            this.txtNombre.Name = "txtNombre";
-            this.txtNombre.Size = new System.Drawing.Size(199, 20);
-            this.txtNombre.TabIndex = 4;
+            this.txtDispositivos.Location = new System.Drawing.Point(169, 128);
+            this.txtDispositivos.Name = "txtDispositivos";
+            this.txtDispositivos.Size = new System.Drawing.Size(52, 20);
+            this.txtDispositivos.TabIndex = 6;
             // 
             // chkActiva
             // 
@@ -139,21 +113,50 @@
             this.chkActiva.TabIndex = 5;
             this.chkActiva.UseVisualStyleBackColor = true;
             // 
-            // txtDispositivos
+            // txtCodigoUsuario
             // 
-            this.txtDispositivos.Location = new System.Drawing.Point(169, 128);
-            this.txtDispositivos.Name = "txtDispositivos";
-            this.txtDispositivos.Size = new System.Drawing.Size(52, 20);
-            this.txtDispositivos.TabIndex = 6;
+            this.txtCodigoUsuario.Location = new System.Drawing.Point(169, 37);
+            this.txtCodigoUsuario.Name = "txtCodigoUsuario";
+            this.txtCodigoUsuario.ReadOnly = true;
+            this.txtCodigoUsuario.Size = new System.Drawing.Size(199, 20);
+            this.txtCodigoUsuario.TabIndex = 4;
+            this.txtCodigoUsuario.TextChanged += new System.EventHandler(this.txtCodigoUsuario_TextChanged);
             // 
-            // dtpFecha
+            // label4
             // 
-            this.dtpFecha.CustomFormat = "yyyy-MM-dd HH:mm:ss";
-            this.dtpFecha.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtpFecha.Location = new System.Drawing.Point(169, 175);
-            this.dtpFecha.Name = "dtpFecha";
-            this.dtpFecha.Size = new System.Drawing.Size(200, 20);
-            this.dtpFecha.TabIndex = 7;
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(67, 175);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(67, 13);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "Fecha inicio:";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(67, 131);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(66, 13);
+            this.label3.TabIndex = 2;
+            this.label3.Text = "Dispositivos:";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(67, 83);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(40, 13);
+            this.label2.TabIndex = 1;
+            this.label2.Text = "Activa:";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(67, 37);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(80, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Codigo usuario:";
             // 
             // btnUpdate
             // 
@@ -176,7 +179,7 @@
             this.Controls.Add(this.txtID);
             this.Controls.Add(this.txtLabel);
             this.Name = "GUIUpdateSuscripcion";
-            this.Text = "GUIUpdateSuscripcion";
+            this.Text = "ACTUALIZAR SUSCRIPCION";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
@@ -191,7 +194,7 @@
         private System.Windows.Forms.Button btnBuscar;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox chkActiva;
-        private System.Windows.Forms.TextBox txtNombre;
+        private System.Windows.Forms.TextBox txtCodigoUsuario;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label2;

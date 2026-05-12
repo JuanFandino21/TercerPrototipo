@@ -15,6 +15,19 @@ public class UsuarioService implements IUsuarioService {
 
     @Override
     public Usuario addUsuario(Usuario usuario) {
+
+        if (usuarioRepository.existsById(usuario.getCodigo())) {
+            throw new RuntimeException("Ya existe un usuario con el código: " + usuario.getCodigo());
+        }
+
+        if (usuarioRepository.existsByNumDocumento(usuario.getNumDocumento())) {
+            throw new RuntimeException("Ya existe un usuario con el documento: " + usuario.getNumDocumento());
+        }
+
+        if (usuarioRepository.existsByEmail(usuario.getEmail())) {
+            throw new RuntimeException("Ya existe un usuario con el email: " + usuario.getEmail());
+        }
+
         return usuarioRepository.save(usuario);
     }
 
@@ -33,17 +46,38 @@ public class UsuarioService implements IUsuarioService {
         if (!usuarioRepository.existsById(codigo)) {
             return false;
         }
+
         usuarioRepository.deleteById(codigo);
         return true;
     }
 
     @Override
     public Usuario actualizarUsuario(int codigo, Usuario usuario) {
-        if (!usuarioRepository.existsById(codigo)) {
+        Usuario existente = usuarioRepository.findById(codigo).orElse(null);
+
+        if (existente == null) {
             return null;
         }
-        usuario.setCodigo(codigo);
-        return usuarioRepository.save(usuario);
+
+        Usuario usuarioDocumento = usuarioRepository.findByNumDocumento(usuario.getNumDocumento()).orElse(null);
+
+        if (usuarioDocumento != null && usuarioDocumento.getCodigo() != codigo) {
+            throw new RuntimeException("Ya existe otro usuario con el documento: " + usuario.getNumDocumento());
+        }
+
+        Usuario usuarioEmail = usuarioRepository.findByEmail(usuario.getEmail()).orElse(null);
+
+        if (usuarioEmail != null && usuarioEmail.getCodigo() != codigo) {
+            throw new RuntimeException("Ya existe otro usuario con el email: " + usuario.getEmail());
+        }
+
+        existente.setNumDocumento(usuario.getNumDocumento());
+        existente.setTipoDoc(usuario.getTipoDoc());
+        existente.setNombre(usuario.getNombre());
+        existente.setEmail(usuario.getEmail());
+        existente.setEstado(usuario.getEstado());
+
+        return usuarioRepository.save(existente);
     }
 
     @Override

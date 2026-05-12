@@ -11,69 +11,88 @@ import java.util.List;
 public class SuscripcionStreamingService implements ISuscripcionStreamingService {
 
     @Autowired
-    private SuscripcionStreamingRepository streamingRepository;
-
-    // ── Reglas de negocio ─────────────────────────────────────────────
-
-    @Override
-    public void validarDispositivos(int cantidad) {
-        if (cantidad < 1 || cantidad > 6) {
-            throw new RuntimeException("La cantidad de pantallas debe estar entre 1 y 6");
-        }
-    }
-
-    @Override
-    public double calcularCosto(SuscripcionStreaming suscripcion) {
-        final double PRECIO_BASE = 16000.0;
-        final double RECARGO_POR_PANTALLA = 2000.0;
-
-        int dispositivos = suscripcion.getDispositivosSimultaneos();
-        validarDispositivos(dispositivos); // refuerzo de la regla en capa de dominio
-
-        double recargo = 0;
-        int cont = 1;
-
-        while (cont < dispositivos) {
-            recargo += RECARGO_POR_PANTALLA;
-            cont++;
-        }
-
-        return PRECIO_BASE + recargo;
-    }
-
-    // ── CRUD sobre la BD (usando JPA) ─────────────────────────────────
+    private SuscripcionStreamingRepository repo;
 
     @Override
     public SuscripcionStreaming addSuscripcion(SuscripcionStreaming suscripcion) {
-        // Aquí podrías usar calcularCosto si luego decides guardar el costo total
-        return streamingRepository.save(suscripcion);
+
+        if (repo.existsById(suscripcion.getId())) {
+            throw new RuntimeException("Ya existe una suscripción con el ID: " + suscripcion.getId());
+        }
+
+        suscripcion.setCostoMensual(calcularCostoMensual(suscripcion.getDispositivosSimultaneos()));
+
+        return repo.save(suscripcion);
     }
 
     @Override
     public SuscripcionStreaming buscarSuscripcionPorId(int id) {
-        return streamingRepository.findById(id).orElse(null);
+        return repo.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<SuscripcionStreaming> getSuscripciones() {
+        return repo.findAll();
+    }
+
+    @Override
+    public List<SuscripcionStreaming> filtrarPorActiva(boolean activa) {
+        return repo.findByActiva(activa);
+    }
+
+    @Override
+    public List<SuscripcionStreaming> filtrarPorPlataforma(String plataforma) {
+        return repo.findByPlataformaContainingIgnoreCase(plataforma);
+    }
+
+    @Override
+    public List<SuscripcionStreaming> buscarPorCodigoUsuario(int codigo) {
+        return repo.buscarPorCodigoUsuario(codigo);
+    }
+
+    @Override
+    public List<SuscripcionStreaming> activasConCostoMenorA(double costo) {
+        return repo.activasConCostoMenorA(costo);
     }
 
     @Override
     public boolean eliminarSuscripcionPorId(int id) {
-        if (!streamingRepository.existsById(id)) {
+        if (!repo.existsById(id)) {
             return false;
         }
-        streamingRepository.deleteById(id);
+
+        repo.deleteById(id);
         return true;
     }
 
     @Override
     public boolean actualizarSuscripcion(SuscripcionStreaming suscripcion) {
-        if (!streamingRepository.existsById(suscripcion.getId())) {
+        if (!repo.existsById(suscripcion.getId())) {
             return false;
         }
-        streamingRepository.save(suscripcion);
+
+        suscripcion.setCostoMensual(calcularCostoMensual(suscripcion.getDispositivosSimultaneos()));
+        repo.save(suscripcion);
+
         return true;
     }
 
     @Override
-    public List<SuscripcionStreaming> getSuscripciones() {
-        return streamingRepository.findAll();
+    public void validarDispositivos(int dispositivos) {
+        if (dispositivos < 1 || dispositivos > 6) {
+            throw new RuntimeException("Los dispositivos simultáneos deben estar entre 1 y 6");
+        }
+    }
+
+    private double calcularCostoMensual(int dispositivos) {
+        return switch (dispositivos) {
+            case 1 -> 16000;
+            case 2 -> 18000;
+            case 3 -> 20000;
+            case 4 -> 22000;
+            case 5 -> 24000;
+            case 6 -> 26000;
+            default -> throw new RuntimeException("Cantidad de dispositivos inválida");
+        };
     }
 }

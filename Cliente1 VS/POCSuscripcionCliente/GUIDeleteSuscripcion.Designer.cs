@@ -61,6 +61,7 @@
             this.txtID.Name = "txtID";
             this.txtID.Size = new System.Drawing.Size(100, 20);
             this.txtID.TabIndex = 1;
+            this.txtID.TextChanged += new System.EventHandler(this.txtID_TextChanged);
             // 
             // btnSearch
             // 
@@ -198,7 +199,7 @@
             this.Controls.Add(this.txtID);
             this.Controls.Add(this.label1);
             this.Name = "GUIDeleteSuscripcion";
-            this.Text = "GUIDeleteSuscripcion";
+            this.Text = "ELIMINAR SUSCRIPCION";
             this.Suscripcion.ResumeLayout(false);
             this.Suscripcion.PerformLayout();
             this.ResumeLayout(false);

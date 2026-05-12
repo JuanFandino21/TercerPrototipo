@@ -1,7 +1,10 @@
 package com.jfrb.POCSucripcion.controller;
 
 import com.jfrb.POCSucripcion.model.SuscripcionStreaming;
+import com.jfrb.POCSucripcion.model.Usuario;
 import com.jfrb.POCSucripcion.service.ISuscripcionStreamingService;
+import com.jfrb.POCSucripcion.service.IUsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,185 +12,217 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/streaming")
-@CrossOrigin(origins = "*")
+@RequestMapping(value = "/streaming")
+@CrossOrigin(origins = "http://localhost:3000")
 public class SuscripcionStreamingController {
 
-    private final ISuscripcionStreamingService streamingService;
+    @Autowired
+    private ISuscripcionStreamingService streamingService;
 
-    public SuscripcionStreamingController(ISuscripcionStreamingService streamingService) {
-        this.streamingService = streamingService;
+    @Autowired
+    private IUsuarioService usuarioService;
+
+    @GetMapping(value = "/healthCheck")
+    public ResponseEntity<String> healthCheck() {
+        return ResponseEntity.ok("Ok!");
     }
 
-    @GetMapping("/health")
-    public String healthCheck() {
-        return "Servicio Suscripciones OK";
-    }
-
-    // ---------------------------------------------------------------------
-    // Validación de fecha (igual a la tuya)
-    // ---------------------------------------------------------------------
-    private void validarFecha(LocalDateTime fecha) {
-
-        if (fecha == null) {
-            throw new RuntimeException("La fecha es obligatoria");
-        }
-
-        LocalDate hoy = LocalDate.now();
-        LocalDate fechaUsuario = fecha.toLocalDate();
-
-        if (fechaUsuario.isBefore(hoy)) {
-            throw new RuntimeException("La fecha no puede ser anterior a hoy");
-        }
-
-        LocalDate limite = hoy.plusMonths(1);
-
-        if (fechaUsuario.isAfter(limite)) {
-            throw new RuntimeException("La fecha no puede ser mayor a un mes");
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // POST /streaming  → crear suscripción
-    // ---------------------------------------------------------------------
-    @PostMapping
-    public ResponseEntity<?> add(@RequestBody SuscripcionStreaming sus) {
+    /*
+     * Acepta:
+     * POST http://localhost:8090/streaming
+     * POST http://localhost:8090/streaming/
+     *
+     * Esto evita el error 404 que te salía desde Visual Studio.
+     */
+    @PostMapping(value = {"", "/"})
+    public ResponseEntity<?> addSuscripcion(@RequestBody SuscripcionStreaming suscripcion) {
         try {
+            validarSuscripcionParaCrear(suscripcion);
 
-            if (sus == null) {
-                return ResponseEntity.badRequest().body("La suscripción no puede ser null");
+            Usuario usuarioReal = obtenerUsuarioReal(suscripcion);
+            suscripcion.setUsuario(usuarioReal);
+
+            SuscripcionStreaming responseSuscripcion = streamingService.addSuscripcion(suscripcion);
+            return ResponseEntity.ok(responseSuscripcion);
+
+        } catch (RuntimeException e) {
+            String mensaje = e.getMessage();
+
+            if (mensaje != null && mensaje.startsWith("Ya existe")) {
+                return ResponseEntity.status(409).body(mensaje);
             }
 
-            if (sus.getId() <= 0) {
-                return ResponseEntity.badRequest().body("El ID debe ser mayor a 0");
+            return ResponseEntity.badRequest().body(mensaje);
+        }
+    }
+
+    @GetMapping(value = "/all")
+    public ResponseEntity<List<SuscripcionStreaming>> getSuscripciones(
+            @RequestParam(required = false) String plataforma,
+            @RequestParam(required = false) Boolean activa,
+            @RequestParam(required = false) Integer codigoUsuario,
+            @RequestParam(required = false) Double costoMax) {
+
+        List<SuscripcionStreaming> suscripciones = streamingService.getSuscripciones();
+
+        if (codigoUsuario != null) {
+            suscripciones = suscripciones.stream()
+                    .filter(s -> s.getUsuario() != null && s.getUsuario().getCodigo() == codigoUsuario)
+                    .collect(Collectors.toList());
+        }
+
+        if (activa != null) {
+            suscripciones = suscripciones.stream()
+                    .filter(s -> s.isActiva() == activa)
+                    .collect(Collectors.toList());
+        }
+
+        if (plataforma != null && !plataforma.isBlank()) {
+            String filtroPlataforma = plataforma.toLowerCase();
+
+            suscripciones = suscripciones.stream()
+                    .filter(s -> s.getPlataforma() != null
+                            && s.getPlataforma().toLowerCase().contains(filtroPlataforma))
+                    .collect(Collectors.toList());
+        }
+
+        if (costoMax != null) {
+            suscripciones = suscripciones.stream()
+                    .filter(s -> s.getCostoMensual() <= costoMax)
+                    .collect(Collectors.toList());
+        }
+
+        return ResponseEntity.ok(suscripciones);
+    }
+
+    @GetMapping(value = {"/find/{id}", "/{id}"})
+    public ResponseEntity<?> getSuscripcionById(@PathVariable int id) {
+        SuscripcionStreaming suscripcion = streamingService.buscarSuscripcionPorId(id);
+
+        if (suscripcion == null) {
+            return ResponseEntity.status(404).body("No existe suscripción con ID: " + id);
+        }
+
+        return ResponseEntity.ok(suscripcion);
+    }
+
+    @PutMapping(value = {"/update/{id}", "/{id}"})
+    public ResponseEntity<?> updateSuscripcion(@PathVariable int id, @RequestBody SuscripcionStreaming suscripcion) {
+        try {
+            SuscripcionStreaming existente = streamingService.buscarSuscripcionPorId(id);
+
+            if (existente == null) {
+                return ResponseEntity.status(404).body("No existe suscripción con ID: " + id);
             }
 
-            SuscripcionStreaming existente = streamingService.buscarSuscripcionPorId(sus.getId());
-            if (existente != null) {
-                return ResponseEntity.badRequest().body("Ya existe una suscripción con ese ID");
+            validarSuscripcionParaActualizar(suscripcion);
+
+            Usuario usuarioReal = obtenerUsuarioReal(suscripcion);
+
+            suscripcion.setId(id);
+            suscripcion.setUsuario(usuarioReal);
+
+            boolean actualizado = streamingService.actualizarSuscripcion(suscripcion);
+
+            if (!actualizado) {
+                return ResponseEntity.badRequest().body("No se pudo actualizar la suscripción");
             }
 
-            if (sus.getNombreUsuario() == null || sus.getNombreUsuario().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("El nombre de usuario es obligatorio");
-            }
+            return ResponseEntity.ok(Map.of("mensaje", "Suscripción actualizada correctamente"));
 
-            if (sus.getFechaInicio() == null) {
-                return ResponseEntity.badRequest().body("La fecha es obligatoria");
-            }
-
-            if (sus.getDispositivosSimultaneos() < 1) {
-                return ResponseEntity.badRequest().body("Debe ingresar dispositivos");
-            }
-
-            validarFecha(sus.getFechaInicio());
-            streamingService.validarDispositivos(sus.getDispositivosSimultaneos());
-
-            streamingService.addSuscripcion(sus);
-
-            return ResponseEntity.status(201).body(sus);
-
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // ---------------------------------------------------------------------
-    // GET /streaming/{id}  → buscar por id
-    // ---------------------------------------------------------------------
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable int id) {
+    @DeleteMapping(value = {"/delete/{id}", "/{id}"})
+    public ResponseEntity<?> deleteSuscripcion(@PathVariable int id) {
+        SuscripcionStreaming suscripcion = streamingService.buscarSuscripcionPorId(id);
 
-        SuscripcionStreaming sus = streamingService.buscarSuscripcionPorId(id);
-
-        if (sus == null) {
-            return ResponseEntity.status(404).body("No existe suscripción con id: " + id);
-        }
-
-        return ResponseEntity.ok(sus);
-    }
-
-    // ---------------------------------------------------------------------
-    // DELETE /streaming/{id}  → eliminar
-    // ---------------------------------------------------------------------
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable int id) {
-
-        SuscripcionStreaming sus = streamingService.buscarSuscripcionPorId(id);
-
-        if (sus == null) {
-            return ResponseEntity.status(404).body("No existe el registro");
+        if (suscripcion == null) {
+            return ResponseEntity.status(404).body("No existe suscripción con ID: " + id);
         }
 
         boolean eliminado = streamingService.eliminarSuscripcionPorId(id);
 
         if (!eliminado) {
-            return ResponseEntity.badRequest().body("No se pudo eliminar");
+            return ResponseEntity.badRequest().body("No se pudo eliminar la suscripción");
         }
 
-        return ResponseEntity.ok(Map.of("mensaje", "Eliminado correctamente"));
+        return ResponseEntity.ok(Map.of("mensaje", "Suscripción eliminada correctamente"));
     }
 
-    // ---------------------------------------------------------------------
-    // PUT /streaming/{id}  → actualizar
-    // ---------------------------------------------------------------------
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable int id, @RequestBody SuscripcionStreaming sus) {
+    private void validarSuscripcionParaCrear(SuscripcionStreaming suscripcion) {
+        if (suscripcion == null) {
+            throw new RuntimeException("La suscripción no puede ser null");
+        }
 
-        try {
+        if (suscripcion.getId() <= 0) {
+            throw new RuntimeException("El número de suscripción debe ser mayor a 0");
+        }
 
-            SuscripcionStreaming existente = streamingService.buscarSuscripcionPorId(id);
+        if (streamingService.buscarSuscripcionPorId(suscripcion.getId()) != null) {
+            throw new RuntimeException("Ya existe una suscripción con el número: " + suscripcion.getId());
+        }
 
-            if (existente == null) {
-                return ResponseEntity.status(404).body("No existe el registro");
-            }
+        validarSuscripcionParaActualizar(suscripcion);
+    }
 
-            if (sus.getNombreUsuario() == null || sus.getNombreUsuario().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("El nombre de usuario es obligatorio");
-            }
+    private void validarSuscripcionParaActualizar(SuscripcionStreaming suscripcion) {
+        if (suscripcion == null) {
+            throw new RuntimeException("La suscripción no puede ser null");
+        }
 
-            if (sus.getFechaInicio() == null) {
-                return ResponseEntity.badRequest().body("La fecha es obligatoria");
-            }
+        if (suscripcion.getUsuario() == null || suscripcion.getUsuario().getCodigo() <= 0) {
+            throw new RuntimeException("Debe seleccionar un usuario válido");
+        }
 
-            if (sus.getDispositivosSimultaneos() < 1) {
-                return ResponseEntity.badRequest().body("Debe ingresar dispositivos");
-            }
+        if (suscripcion.getPlataforma() == null || suscripcion.getPlataforma().isBlank()) {
+            throw new RuntimeException("Debe seleccionar una plataforma");
+        }
 
-            validarFecha(sus.getFechaInicio());
-            streamingService.validarDispositivos(sus.getDispositivosSimultaneos());
+        if (!plataformaValida(suscripcion.getPlataforma())) {
+            throw new RuntimeException("La plataforma seleccionada no es válida");
+        }
 
-            sus.setId(id);
-            boolean actualizado = streamingService.actualizarSuscripcion(sus);
+        if (suscripcion.getFechaInicio() == null) {
+            throw new RuntimeException("La fecha de inicio es obligatoria");
+        }
 
-            if (!actualizado) {
-                return ResponseEntity.badRequest().body("No se pudo actualizar");
-            }
+        validarFechaFlexible(suscripcion.getFechaInicio());
+        streamingService.validarDispositivos(suscripcion.getDispositivosSimultaneos());
+    }
 
-            return ResponseEntity.ok(Map.of("mensaje", "Actualizado correctamente"));
+    private Usuario obtenerUsuarioReal(SuscripcionStreaming suscripcion) {
+        Usuario usuarioReal = usuarioService.buscarPorCodigo(suscripcion.getUsuario().getCodigo());
 
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        if (usuarioReal == null) {
+            throw new RuntimeException("No existe usuario con código: " + suscripcion.getUsuario().getCodigo());
+        }
+
+        return usuarioReal;
+    }
+
+    private void validarFechaFlexible(LocalDateTime fecha) {
+        LocalDate hoy = LocalDate.now();
+        LocalDate fechaIngresada = fecha.toLocalDate();
+
+        if (fechaIngresada.isBefore(hoy)) {
+            throw new RuntimeException("La fecha no puede ser anterior al día de hoy");
         }
     }
 
-    // ---------------------------------------------------------------------
-    // GET /streaming  → listar (con filtros opcionales nombre / activa)
-    // ---------------------------------------------------------------------
-    @GetMapping
-    public ResponseEntity<?> listar(
-            @RequestParam(required = false) String nombre,
-            @RequestParam(required = false) Boolean activa
-    ) {
-
-        List<SuscripcionStreaming> lista = streamingService.getSuscripciones();
-
-        List<SuscripcionStreaming> resultado = lista.stream()
-                .filter(s -> nombre == null || s.getNombreUsuario().equalsIgnoreCase(nombre))
-                .filter(s -> activa == null || s.isActiva() == activa)
-                .toList();
-
-        return ResponseEntity.ok(resultado);
+    private boolean plataformaValida(String plataforma) {
+        return plataforma.equals("Netflix")
+                || plataforma.equals("Disney+")
+                || plataforma.equals("HBO Max")
+                || plataforma.equals("Amazon Prime Video")
+                || plataforma.equals("Paramount+")
+                || plataforma.equals("Apple TV+")
+                || plataforma.equals("Crunchyroll")
+                || plataforma.equals("Star+");
     }
 }

@@ -1,12 +1,6 @@
 ﻿using RestSharp;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using System.Windows.Forms;
 
 namespace POCSuscripcionCliente
@@ -16,86 +10,126 @@ namespace POCSuscripcionCliente
         public GUISearchSuscripcion()
         {
             InitializeComponent();
+
+            btnSearch.Click += btnSearch_Click;
+
+            chkActiva.Enabled = false;
+            limpiarLabels();
         }
 
         private void limpiarLabels()
         {
             ID.Text = "";
             Nombre.Text = "";
-            chkActiva.Text = "";
+            chkActiva.Checked = false;
             Dispositivos.Text = "";
             fechai.Text = "";
         }
 
         private void btnSearch_Click(object sender, EventArgs e)
         {
-
-            if (string.IsNullOrWhiteSpace(txtID.Text))
+            try
             {
-                MessageBox.Show("Debe ingresar un ID");
-                return;
-            }
-            string id = txtID.Text;
-
-            var options = new RestClientOptions("http://localhost:31230/streaming");
-            var client = new RestClient(options);
-
-            var request = new RestRequest("/" + id, Method.Get);
-
-            var response = client.Execute(request);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                MessageBox.Show("No existe suscripción con id: " + id);
-
                 limpiarLabels();
-                return;
-            }
 
-            string contenido = response.Content;
-
-          
-            contenido = contenido.Replace("{", "").Replace("}", "");
-
-            string[] campos = contenido.Split(',');
-
-   
-            foreach (var campo in campos)
-            {
-                if (campo.Contains("id"))
-                    ID.Text = campo.Split(':')[1];
-
-                if (campo.Contains("nombreUsuario"))
-                    Nombre.Text = campo.Split(':')[1].Replace("\"", "");
-
-                if (campo.Contains("activa"))
-                    chkActiva.Checked = campo.Split(':')[1].Trim() == "true";
-
-                if (campo.Contains("dispositivosSimultaneos"))
-                    Dispositivos.Text = campo.Split(':')[1];
-
-                if (campo.Contains("fechaInicio"))
+                if (string.IsNullOrWhiteSpace(txtID.Text))
                 {
-                    string fecha = campo.Split(':')[1].Replace("\"", "");
+                    MessageBox.Show("Debe ingresar el ID de la suscripción.");
+                    txtID.Focus();
+                    return;
+                }
 
-                    
-                    fecha = fecha.Replace("T", " ");
+                if (!int.TryParse(txtID.Text.Trim(), out int id) || id <= 0)
+                {
+                    MessageBox.Show("El ID debe ser un número mayor a 0.");
+                    txtID.Focus();
+                    return;
+                }
 
-                    fechai.Text = fecha;
+                var options = new RestClientOptions("http://localhost:8090/streaming");
+                var client = new RestClient(options);
+
+                // Ruta actual recomendada del backend
+                var request = new RestRequest("/find/" + id, Method.Get);
+
+                var response = client.Execute(request);
+
+                if (!response.IsSuccessful)
+                {
+                    MessageBox.Show("No existe suscripción con ID: " + id);
+                    limpiarLabels();
+                    return;
+                }
+
+                if (string.IsNullOrWhiteSpace(response.Content))
+                {
+                    MessageBox.Show("El servidor no devolvió información.");
+                    limpiarLabels();
+                    return;
+                }
+
+                JsonDocument json = JsonDocument.Parse(response.Content);
+                JsonElement root = json.RootElement;
+
+                if (root.TryGetProperty("id", out JsonElement idElement))
+                {
+                    ID.Text = idElement.GetInt32().ToString();
+                }
+
+                if (root.TryGetProperty("activa", out JsonElement activaElement))
+                {
+                    chkActiva.Checked = activaElement.GetBoolean();
+                }
+
+                if (root.TryGetProperty("dispositivosSimultaneos", out JsonElement dispositivosElement))
+                {
+                    Dispositivos.Text = dispositivosElement.GetInt32().ToString();
+                }
+
+                if (root.TryGetProperty("fechaInicio", out JsonElement fechaElement))
+                {
+                    string fecha = fechaElement.GetString();
+
+                    if (!string.IsNullOrWhiteSpace(fecha))
+                    {
+                        fechai.Text = fecha.Replace("T", " ");
+                    }
+                }
+
+                if (root.TryGetProperty("usuario", out JsonElement usuarioElement))
+                {
+                    string nombreUsuario = "";
+                    string codigoUsuario = "";
+
+                    if (usuarioElement.TryGetProperty("nombre", out JsonElement nombreElement))
+                    {
+                        nombreUsuario = nombreElement.GetString();
+                    }
+
+                    if (usuarioElement.TryGetProperty("codigo", out JsonElement codigoElement))
+                    {
+                        codigoUsuario = codigoElement.GetInt32().ToString();
+                    }
+
+                    Nombre.Text = nombreUsuario + " (Código: " + codigoUsuario + ")";
+                }
+                else
+                {
+                    Nombre.Text = "Sin usuario asociado";
                 }
             }
-
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
         }
 
         private void textBox3_TextChanged(object sender, EventArgs e)
         {
-
         }
 
         private void Suscripcion_Enter(object sender, EventArgs e)
         {
-
         }
     }
 }
-

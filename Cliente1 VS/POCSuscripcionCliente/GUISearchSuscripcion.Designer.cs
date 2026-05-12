@@ -188,7 +188,7 @@
             this.Controls.Add(this.txtID);
             this.Controls.Add(this.label1);
             this.Name = "GUISearchSuscripcion";
-            this.Text = "GUISearchSuscripcion";
+            this.Text = "BUSCAR SUSCRIPCION";
             this.Suscripcion.ResumeLayout(false);
             this.Suscripcion.PerformLayout();
             this.ResumeLayout(false);

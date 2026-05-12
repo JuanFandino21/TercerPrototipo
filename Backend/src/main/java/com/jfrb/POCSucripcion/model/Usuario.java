@@ -17,12 +17,12 @@ import java.time.LocalDateTime;
 public class Usuario {
 
     @Id
-    private int codigo;               // NUMBER(10)
+    private int codigo;
 
-    private Long numDocumento;        // NUMBER(15)
-    private String tipoDoc;           // CC, TI, PAS, CE
-    private String nombre;            // VARCHAR2(255)
-    private String email;             // VARCHAR2(255)
+    private Long numDocumento;
+    private String tipoDoc;
+    private String nombre;
+    private String email;
     private LocalDateTime fechaRegistro;
-    private String estado;            // AC / IN
+    private String estado;
 }

@@ -32,15 +32,18 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.btnListar = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Usuario = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Activa = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Dispositivos = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.FechaInicio = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.label1 = new System.Windows.Forms.Label();
             this.txtNombre = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.chkActiva = new System.Windows.Forms.CheckBox();
-            this.ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Nombre = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Activa = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Dispositivos = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.FechaInicio = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -51,11 +54,11 @@
             // 
             // btnListar
             // 
-            this.btnListar.Location = new System.Drawing.Point(244, 40);
+            this.btnListar.Location = new System.Drawing.Point(316, 62);
             this.btnListar.Name = "btnListar";
             this.btnListar.Size = new System.Drawing.Size(103, 23);
             this.btnListar.TabIndex = 2;
-            this.btnListar.Text = "Get Suscripciones";
+            this.btnListar.Text = "Listar suscripciones";
             this.btnListar.UseVisualStyleBackColor = true;
             this.btnListar.Click += new System.EventHandler(this.btnListar_Click);
             // 
@@ -66,38 +69,89 @@
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ID,
-            this.Nombre,
+            this.Usuario,
             this.Activa,
             this.Dispositivos,
-            this.FechaInicio});
-            this.dataGridView1.Location = new System.Drawing.Point(12, 72);
+            this.FechaInicio,
+            this.Column1,
+            this.Column2,
+            this.Column3});
+            this.dataGridView1.Location = new System.Drawing.Point(12, 91);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.ReadOnly = true;
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dataGridView1.Size = new System.Drawing.Size(572, 246);
+            this.dataGridView1.Size = new System.Drawing.Size(706, 292);
             this.dataGridView1.TabIndex = 3;
-           
+            // 
+            // ID
+            // 
+            this.ID.HeaderText = "ID";
+            this.ID.Name = "ID";
+            this.ID.ReadOnly = true;
+            // 
+            // Usuario
+            // 
+            this.Usuario.HeaderText = "Uuario";
+            this.Usuario.Name = "Usuario";
+            this.Usuario.ReadOnly = true;
+            // 
+            // Activa
+            // 
+            this.Activa.HeaderText = "Codigo usuario:";
+            this.Activa.Name = "Activa";
+            this.Activa.ReadOnly = true;
+            // 
+            // Dispositivos
+            // 
+            this.Dispositivos.HeaderText = "Plataforma";
+            this.Dispositivos.Name = "Dispositivos";
+            this.Dispositivos.ReadOnly = true;
+            // 
+            // FechaInicio
+            // 
+            this.FechaInicio.HeaderText = "Activa";
+            this.FechaInicio.Name = "FechaInicio";
+            this.FechaInicio.ReadOnly = true;
+            // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "Dispositivos";
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            // 
+            // Column2
+            // 
+            this.Column2.HeaderText = "Costo mensual";
+            this.Column2.Name = "Column2";
+            this.Column2.ReadOnly = true;
+            // 
+            // Column3
+            // 
+            this.Column3.HeaderText = "Fecha inicio";
+            this.Column3.Name = "Column3";
+            this.Column3.ReadOnly = true;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(114, 15);
+            this.label1.Location = new System.Drawing.Point(166, 19);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(47, 13);
+            this.label1.Size = new System.Drawing.Size(80, 13);
             this.label1.TabIndex = 4;
-            this.label1.Text = "Nombre:";
+            this.label1.Text = "Codigo usuario:";
             // 
             // txtNombre
             // 
-            this.txtNombre.Location = new System.Drawing.Point(167, 12);
+            this.txtNombre.Location = new System.Drawing.Point(252, 16);
             this.txtNombre.Name = "txtNombre";
             this.txtNombre.Size = new System.Drawing.Size(135, 20);
             this.txtNombre.TabIndex = 5;
+            this.txtNombre.TextChanged += new System.EventHandler(this.txtNombre_TextChanged);
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(330, 16);
+            this.label2.Location = new System.Drawing.Point(415, 15);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(40, 13);
             this.label2.TabIndex = 6;
@@ -108,56 +162,26 @@
             this.chkActiva.AutoSize = true;
             this.chkActiva.Checked = true;
             this.chkActiva.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkActiva.Location = new System.Drawing.Point(376, 16);
+            this.chkActiva.Location = new System.Drawing.Point(461, 15);
             this.chkActiva.Name = "chkActiva";
-            this.chkActiva.Size = new System.Drawing.Size(86, 17);
+            this.chkActiva.Size = new System.Drawing.Size(15, 14);
             this.chkActiva.TabIndex = 7;
-            this.chkActiva.Text = "checkActiva";
             this.chkActiva.UseVisualStyleBackColor = true;
+            this.chkActiva.CheckedChanged += new System.EventHandler(this.chkActiva_CheckedChanged);
             // 
-            // ID
-            // 
-            this.ID.HeaderText = "ID";
-            this.ID.Name = "ID";
-            this.ID.ReadOnly = true;
-            // 
-            // Nombre
-            // 
-            this.Nombre.HeaderText = "Nombre";
-            this.Nombre.Name = "Nombre";
-            this.Nombre.ReadOnly = true;
-            // 
-            // Activa
-            // 
-            this.Activa.HeaderText = "Activa";
-            this.Activa.Name = "Activa";
-            this.Activa.ReadOnly = true;
-            // 
-            // Dispositivos
-            // 
-            this.Dispositivos.HeaderText = "Dispositivos";
-            this.Dispositivos.Name = "Dispositivos";
-            this.Dispositivos.ReadOnly = true;
-            // 
-            // FechaInicio
-            // 
-            this.FechaInicio.HeaderText = "FechaInicio";
-            this.FechaInicio.Name = "FechaInicio";
-            this.FechaInicio.ReadOnly = true;
-            // 
-            // GUIListSuscripcion
+            // GUIListFilterSuscripcion
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(596, 349);
+            this.ClientSize = new System.Drawing.Size(730, 386);
             this.Controls.Add(this.chkActiva);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.txtNombre);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.btnListar);
-            this.Name = "GUIListSuscripcion";
-            this.Text = "GUIListSuscripcion";
+            this.Name = "GUIListFilterSuscripcion";
+            this.Text = "LISTAR SUSCRIPCIONES CON FILTROS";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -173,9 +197,12 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox chkActiva;
         private System.Windows.Forms.DataGridViewTextBoxColumn ID;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Nombre;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Usuario;
         private System.Windows.Forms.DataGridViewTextBoxColumn Activa;
         private System.Windows.Forms.DataGridViewTextBoxColumn Dispositivos;
         private System.Windows.Forms.DataGridViewTextBoxColumn FechaInicio;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column3;
     }
 }

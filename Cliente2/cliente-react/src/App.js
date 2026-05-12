@@ -1,36 +1,44 @@
-import React, { useState } from "react";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Menu from './components/Menu';
+import Inicio from './components/Inicio';
 import "./styles.css";
+import Listar from './components/Listar';
+import Agregar from './components/Agregar';
+import Buscar from './components/Buscar';
+import Actualizar from './components/Actualizar';
+import Eliminar from './components/Eliminar';
 
-import Menu from "./components/Menu";
-import Agregar from "./components/Agregar";
-import Listar from "./components/Listar";
-import Buscar from "./components/Buscar";
-import Eliminar from "./components/Eliminar";
-import Actualizar from "./components/Actualizar";
-import AcercaDe from "./components/AcercaDe";
+import ListarUsuario from './components/ListarUsuario';
+import AgregarUsuario from './components/AgregarUsuario';
+import BuscarUsuario from './components/BuscarUsuario';
+import ActualizarUsuario from './components/ActualizarUsuario';
+import EliminarUsuario from './components/EliminarUsuario';
+import AcercaDe from './components/AcercaDe';
 
 function App() {
-  const [vista, setVista] = useState("menu");
-
-  return (
-    <div className="container">
-      <h1>Sistema de Suscripciones</h1>
-
-      <div className="panel">
-        <Menu setVista={setVista} />
-      </div>
-
-      <div className="panel">
-        {vista === "menu" && <p>Seleccione una opción del menú</p>}
-        {vista === "agregar" && <Agregar />}
-        {vista === "listar" && <Listar />}
-        {vista === "buscar" && <Buscar />}
-        {vista === "eliminar" && <Eliminar />}
-        {vista === "actualizar" && <Actualizar />}
-        {vista === "acerca" && <AcercaDe />}
-      </div>
-    </div>
-  );
+    return (
+        <BrowserRouter>
+            <Menu />
+            <div style={{ padding: '30px', maxWidth: '1100px', margin: '0 auto' }}>
+                <Routes>
+                    <Route path="/" element={<Navigate to="/inicio" />} />
+                    <Route path="/inicio"              element={<Inicio />} />
+                    <Route path="/usuarios/listar"     element={<ListarUsuario />} />
+                    <Route path="/usuarios/agregar"    element={<AgregarUsuario />} />
+                    <Route path="/usuarios/buscar"     element={<BuscarUsuario />} />
+                    <Route path="/usuarios/actualizar" element={<ActualizarUsuario />} />
+                    <Route path="/usuarios/eliminar"   element={<EliminarUsuario />} />
+                    <Route path="/streaming/listar"     element={<Listar />} />
+                    <Route path="/streaming/agregar"    element={<Agregar />} />
+                    <Route path="/streaming/buscar"     element={<Buscar />} />
+                    <Route path="/streaming/actualizar" element={<Actualizar />} />
+                    <Route path="/streaming/eliminar"   element={<Eliminar />} />
+                    <Route path="/acerca"               element={<AcercaDe />} />
+                </Routes>
+            </div>
+        </BrowserRouter>
+    );
 }
 
 export default App;

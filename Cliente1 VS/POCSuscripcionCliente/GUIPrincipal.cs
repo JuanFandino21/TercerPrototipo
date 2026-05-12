@@ -89,5 +89,46 @@ namespace POCSuscripcionCliente
             gui.Show();
 
         }
+
+        private void usuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void gUIAddUsuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GUIAddUsuario ventana = new GUIAddUsuario();
+            ventana.Show();
+
+        }
+
+        private void gUIListUsuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GUIListUsuario ventana = new GUIListUsuario();
+            ventana.Show();
+
+        }
+
+        private void gUIDeleteUsuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GUIDeleteUsuario ventana = new GUIDeleteUsuario();
+            ventana.Show();
+
+        }
+
+        private void gUISearchUsuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GUISearchUsuario ventana = new GUISearchUsuario();
+            ventana.Show();
+
+        }
+
+        private void gUIUpdateUsuarioToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            GUIUpdateUsuario ventana = new GUIUpdateUsuario();
+            ventana.Show();
+
+        }
     }
 }

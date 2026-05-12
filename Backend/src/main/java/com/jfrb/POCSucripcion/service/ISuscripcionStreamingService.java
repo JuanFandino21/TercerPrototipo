@@ -6,19 +6,23 @@ import java.util.List;
 
 public interface ISuscripcionStreamingService {
 
-    // Reglas de negocio que ya tenías
-    void validarDispositivos(int cantidad);
-
-    double calcularCosto(SuscripcionStreaming suscripcion);
-
-    // CRUD contra la base de datos
     SuscripcionStreaming addSuscripcion(SuscripcionStreaming suscripcion);
 
     SuscripcionStreaming buscarSuscripcionPorId(int id);
+
+    List<SuscripcionStreaming> getSuscripciones();
+
+    List<SuscripcionStreaming> filtrarPorActiva(boolean activa);
+
+    List<SuscripcionStreaming> filtrarPorPlataforma(String plataforma);
+
+    List<SuscripcionStreaming> buscarPorCodigoUsuario(int codigo);
+
+    List<SuscripcionStreaming> activasConCostoMenorA(double costo);
 
     boolean eliminarSuscripcionPorId(int id);
 
     boolean actualizarSuscripcion(SuscripcionStreaming suscripcion);
 
-    List<SuscripcionStreaming> getSuscripciones();
+    void validarDispositivos(int dispositivos);
 }

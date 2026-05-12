@@ -1,21 +1,33 @@
-﻿using RestSharp;
+﻿using POCSuscripcionCliente.Models;
+using POCSuscripcionCliente.Services;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace POCSuscripcionCliente
 {
     public partial class GUIDeleteSuscripcion : Form
     {
+        private ApiService apiService = new ApiService();
+        private SuscripcionStreaming suscripcionEncontrada = null;
+        private bool eliminando = false;
+
         public GUIDeleteSuscripcion()
         {
             InitializeComponent();
+
+            // No conectar aquí los eventos si ya están conectados desde el diseñador.
+            // btnSearch.Click += btnSearch_Click;
+            // btnDelete.Click += btnDelete_Click;
+
+            PrepararPantalla();
+        }
+
+        private void PrepararPantalla()
+        {
+            limpiarCampos();
+            btnDelete.Enabled = false;
+            chkActiva.Enabled = false;
+            txtID.Focus();
         }
 
         private void limpiarCampos()
@@ -27,81 +39,163 @@ namespace POCSuscripcionCliente
             fechai.Text = "";
         }
 
-        private void btnSearch_Click(object sender, EventArgs e)
+        private async void btnSearch_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtID.Text)) 
+            limpiarCampos();
+            suscripcionEncontrada = null;
+            btnDelete.Enabled = false;
+
+            if (string.IsNullOrWhiteSpace(txtID.Text))
             {
-                MessageBox.Show("Debe ingresar un ID");
+                MessageBox.Show(
+                    "Debe ingresar el número de la suscripción.",
+                    "Campo obligatorio",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                txtID.Focus();
                 return;
             }
 
-            string id = txtID.Text;
-
-            var options = new RestClientOptions("http://localhost:31230/streaming");
-            var client = new RestClient(options);
-
-            var request = new RestRequest("/" + id, Method.Get);
-
-            var response = client.Execute(request);
-
-            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            if (!int.TryParse(txtID.Text.Trim(), out int id) || id <= 0)
             {
-                MessageBox.Show("No existe suscripción con id: " + id);
-                limpiarCampos();
+                MessageBox.Show(
+                    "El número de suscripción debe ser mayor a 0.",
+                    "Dato inválido",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                txtID.Focus();
                 return;
             }
 
-            string contenido = response.Content;
+            SuscripcionStreaming suscripcion = await apiService.GetSuscripcionById(id);
 
-            contenido = contenido.Replace("{", "").Replace("}", "");
-
-            string[] campos = contenido.Split(',');
-
-            foreach (var campo in campos)
+            if (suscripcion == null)
             {
-                if (campo.Contains("id"))
-                    ID.Text = campo.Split(':')[1]; 
+                MessageBox.Show(
+                    "No existe una suscripción con ese número.",
+                    "Suscripción no encontrada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
 
-                if (campo.Contains("nombreUsuario"))
-                    Nombre.Text = campo.Split(':')[1].Replace("\"", "");
+                txtID.Focus();
+                return;
+            }
 
-                if (campo.Contains("activa"))
-                    chkActiva.Checked = campo.Split(':')[1].Trim() == "true";
+            suscripcionEncontrada = suscripcion;
+            MostrarSuscripcion(suscripcionEncontrada);
+            btnDelete.Enabled = true;
+        }
 
-                if (campo.Contains("dispositivosSimultaneos"))
-                    Dispositivos.Text = campo.Split(':')[1];
+        private void MostrarSuscripcion(SuscripcionStreaming suscripcion)
+        {
+            ID.Text = suscripcion.id.ToString();
 
-                if (campo.Contains("fechaInicio"))
+            if (suscripcion.usuario != null)
+            {
+                Nombre.Text = suscripcion.usuario.nombre + " (Código: " + suscripcion.usuario.codigo + ")";
+            }
+            else
+            {
+                Nombre.Text = "Sin usuario asociado";
+            }
+
+            chkActiva.Checked = suscripcion.activa;
+            Dispositivos.Text = suscripcion.dispositivosSimultaneos.ToString();
+            fechai.Text = suscripcion.fechaInicio.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        private async void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (eliminando)
+            {
+                return;
+            }
+
+            if (suscripcionEncontrada == null)
+            {
+                MessageBox.Show(
+                    "Primero debe buscar una suscripción existente.",
+                    "Sin suscripción seleccionada",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return;
+            }
+
+            DialogResult confirmacion = MessageBox.Show(
+                "¿Seguro que desea eliminar esta suscripción?\n\n" +
+                "ID: " + suscripcionEncontrada.id + "\n" +
+                "Usuario: " + (suscripcionEncontrada.usuario != null ? suscripcionEncontrada.usuario.nombre : "Sin usuario") + "\n" +
+                "Plataforma: " + suscripcionEncontrada.plataforma,
+                "Confirmar eliminación",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (confirmacion != DialogResult.Yes)
+            {
+                return;
+            }
+
+            try
+            {
+                eliminando = true;
+                btnDelete.Enabled = false;
+
+                int idEliminar = suscripcionEncontrada.id;
+
+                string respuesta = await apiService.EliminarSuscripcion(idEliminar);
+
+                if (respuesta == "OK")
                 {
-                    string fecha = campo.Split(':')[1].Replace("\"", "");
-                    fecha = fecha.Replace("T", " ");
-                    fechai.Text = fecha;
+                    MessageBox.Show(
+                        "Suscripción eliminada correctamente.",
+                        "Eliminación exitosa",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information
+                    );
+
+                    txtID.Clear();
+                    suscripcionEncontrada = null;
+                    PrepararPantalla();
                 }
+                else
+                {
+                    MessageBox.Show(
+                        respuesta,
+                        "No se pudo eliminar",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    btnDelete.Enabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al eliminar: " + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+
+                btnDelete.Enabled = true;
+            }
+            finally
+            {
+                eliminando = false;
             }
         }
 
-        private void btnDelete_Click(object sender, EventArgs e)
+        private void txtID_TextChanged(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(ID.Text))
-            {
-                MessageBox.Show("Primero debe buscar una suscripción");
-                return;
-            }
-
-            string id = ID.Text;
-
-            var options = new RestClientOptions("http://localhost:31230/streaming");
-            var client = new RestClient(options);
-
-            var request = new RestRequest("/" + id, Method.Delete);
-
-            var response = client.Execute(request);
-
-            MessageBox.Show(response.Content);
-
-            limpiarCampos();
-
-
         }
     }
 }

@@ -104,7 +104,7 @@
             this.Controls.Add(this.btnList);
             this.Controls.Add(this.dataGridView1);
             this.Name = "GUIListSuscripcion";
-            this.Text = "GUIListSuscripcion";
+            this.Text = "LISTAR SUSCRIPCIONES";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
